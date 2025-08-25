@@ -3,20 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>players, positioning</title>
-    <style>
-        body {
-            font-family: "Times New Roman", serif;
-            text-align: center;
-            background-color: white;
-            color: black;
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
         }
-        a { color: blue; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-    </style>
+    </script>
+    <link rel="stylesheet" href="theme.css">
 </head>
 <body>
+    <button id="theme-toggle">light/dark mode</button>
     <h1>players, positioning</h1>
     <p>content coming soon...</p>
     <p><a href="index.html">back</a></p>
+    <script src="theme.js"></script>
 </body>
 </html>
