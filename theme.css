@@ -1,0 +1,23 @@
+:root {
+    --bg-color: white;
+    --text-color: black;
+    --link-color: blue;
+}
+body {
+    font-family: "Times New Roman", serif;
+    text-align: center;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+a { color: var(--link-color); text-decoration: none; }
+a:hover { text-decoration: underline; }
+body.dark {
+    --bg-color: black;
+    --text-color: white;
+    --link-color: lightblue;
+}
+#theme-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
