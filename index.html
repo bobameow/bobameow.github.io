@@ -4,23 +4,39 @@
     <meta charset="UTF-8">
     <title>bobameow capital</title>
     <style>
+        :root {
+            --bg-color: white;
+            --text-color: black;
+            --link-color: blue;
+        }
         body {
             font-family: "Times New Roman", serif;
             text-align: center;
-            background-color: white;
-            color: black;
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
-        a { color: blue; text-decoration: none; }
+        a { color: var(--link-color); text-decoration: none; }
         a:hover { text-decoration: underline; }
         pre { font-family: monospace; }
+        body.dark {
+            --bg-color: black;
+            --text-color: white;
+            --link-color: lightblue;
+        }
+        #theme-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
     </style>
 </head>
 <body>
+    <button id="theme-toggle">toggle theme</button>
     <h1>bobameow capital</h1>
     <p>writings on humans &amp; numbers in ekonomy &amp; markets</p>
     <pre>
- /\_/\  
-( o.o ) 
+ /\\_/\\
+( o.o )
  > ^ <
     </pre>
     <h2>posts in progress</h2>
@@ -28,5 +44,10 @@
         <li><a href="how2economy.html">how 2 economy</a></li>
         <li><a href="players_positioning.html">players, positioning</a></li>
     </ul>
+    <script>
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+        });
+    </script>
 </body>
 </html>
