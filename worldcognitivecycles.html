@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>world cognitive cycles</title>
+    <link rel="stylesheet" href="theme.css">
+</head>
+<body>
+    <button id="theme-toggle">toggle theme</button>
+    <h1>world cognitive cycles dashboard</h1>
+    <p>Select a nation to open its React dashboard from the worldcognitivecycles collection.</p>
+    <div id="nation-list"></div>
+    <p style="margin-top: 1rem;"><a href="index.html">back to home</a></p>
+    <script>
+      const nations = [
+        { id: 'USA', label: 'United States', path: 'worldcognitivecycles-main/USA' },
+        { id: 'china', label: 'China', path: 'worldcognitivecycles-main/china' },
+        { id: 'singapore', label: 'Singapore', path: 'worldcognitivecycles-main/singapore' },
+      ];
+
+      const listContainer = document.getElementById('nation-list');
+      const list = document.createElement('ul');
+      list.style.listStyleType = 'none';
+      list.style.padding = '0';
+      list.style.display = 'grid';
+      list.style.gap = '0.75rem';
+
+      nations.forEach((nation) => {
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = nation.path;
+        link.textContent = `${nation.label} dashboard`;
+        link.style.display = 'inline-block';
+        link.style.padding = '0.75rem 1rem';
+        link.style.border = '1px solid #ccc';
+        link.style.borderRadius = '8px';
+        link.style.textDecoration = 'none';
+        link.style.fontWeight = '600';
+        link.style.background = 'var(--card-bg, #f8f8f8)';
+        link.style.color = 'inherit';
+        link.addEventListener('mouseover', () => link.style.borderColor = '#7c3aed');
+        link.addEventListener('mouseout', () => link.style.borderColor = '#ccc');
+
+        item.appendChild(link);
+        list.appendChild(item);
+      });
+
+      listContainer.appendChild(list);
+    </script>
+    <script src="theme.js"></script>
+</body>
+</html>
