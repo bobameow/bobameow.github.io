@@ -1,0 +1,724 @@
+import React, { useState, useMemo } from 'react';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
+  PieChart, Pie, Cell, Sector
+} from 'recharts';
+import { 
+  Brain, 
+  Clock, 
+  DollarSign, 
+  Users, 
+  BookOpen, 
+  Briefcase, 
+  Coffee, 
+  Moon, 
+  Home,
+  Factory,
+  Sprout,
+  Stethoscope,
+  Cpu,
+  GraduationCap,
+  ShoppingBag,
+  Building2,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Armchair,
+  Baby,
+  UserX,
+  Anchor,
+  ShieldAlert
+} from 'lucide-react';
+
+// --- DATA SETS (SINGAPORE CONTEXT) ---
+
+// 1. Demographic Pyramid Data (Approximate 2024 SG Statistics)
+// Note: Singapore has a "narrow base" (low birth rate) and a bulge in 30-40s (foreign workforce + millennials)
+const demographicData = [
+  { age: '0-4', male: 1.8, female: 1.7 },
+  { age: '5-9', male: 2.0, female: 1.9 },
+  { age: '10-14', male: 2.1, female: 2.0 },
+  { age: '15-19', male: 2.2, female: 2.1 },
+  { age: '20-24', male: 2.6, female: 2.4 }, // NSF / Uni bump
+  { age: '25-29', male: 3.6, female: 3.4 }, // Work pass holders start entering
+  { age: '30-34', male: 4.5, female: 4.2 }, // Peak workforce
+  { age: '35-39', male: 4.6, female: 4.5 },
+  { age: '40-44', male: 4.2, female: 4.3 },
+  { age: '45-49', male: 3.9, female: 4.0 },
+  { age: '50-54', male: 3.6, female: 3.7 },
+  { age: '55-59', male: 3.4, female: 3.5 },
+  { age: '60-64', male: 3.1, female: 3.2 },
+  { age: '65-69', male: 2.8, female: 2.9 },
+  { age: '70-74', male: 2.1, female: 2.3 },
+  { age: '75-79', male: 1.2, female: 1.5 },
+  { age: '80-84', male: 0.8, female: 1.1 },
+  { age: '85+', male: 0.6, female: 1.0 },
+];
+
+// 2. Wealth & Persona Profiles (Singapore Context)
+const profiles = {
+  average: {
+    label: "Median Resident",
+    description: "HDB 4-Room Dweller. CPF heavy.",
+    netWorth: "S$380,000 (Median)", // Includes CPF & HDB Equity
+    education: { secondary: 20, diploma: 35, degree: 35, postgrad: 10, other: 0 },
+    timeUse: [
+      { name: 'Productive (Work)', value: 9.0, color: '#3b82f6', icon: Briefcase }, // Long working hours
+      { name: 'Maintenance (Sleep/Eat)', value: 11.0, color: '#10b981', icon: Moon },
+      { name: 'Restorative (Leisure)', value: 2.5, color: '#f59e0b', icon: Coffee },
+      { name: 'Household (Chores)', value: 1.5, color: '#8b5cf6', icon: Home },
+    ]
+  },
+  top1: {
+    label: "Top 1% (Landed/D9-10)",
+    description: "Wealth > S$10M. Landed Property / GCB.",
+    netWorth: "S$12,500,000+",
+    education: { secondary: 5, diploma: 10, degree: 45, postgrad: 40, other: 0 },
+    timeUse: [
+      { name: 'Productive (Biz/Work)', value: 10.0, color: '#3b82f6', icon: Briefcase },
+      { name: 'Maintenance', value: 10.5, color: '#10b981', icon: Moon },
+      { name: 'Restorative (Social)', value: 3.0, color: '#f59e0b', icon: Coffee },
+      { name: 'Household (Helper)', value: 0.5, color: '#8b5cf6', icon: Home }, // Heavily outsourced to FDW
+    ]
+  },
+  top15: {
+    label: "Top 15% (Condo/Upper)",
+    description: "Private Condo Owners. Professionals/Expats.",
+    netWorth: "S$2M - S$8M",
+    education: { secondary: 5, diploma: 20, degree: 50, postgrad: 25, other: 0 },
+    timeUse: [
+      { name: 'Productive', value: 9.5, color: '#3b82f6', icon: Briefcase },
+      { name: 'Maintenance', value: 10.5, color: '#10b981', icon: Moon },
+      { name: 'Restorative', value: 2.5, color: '#f59e0b', icon: Coffee },
+      { name: 'Household (Helper)', value: 1.5, color: '#8b5cf6', icon: Home }, // Often have 1 Helper
+    ]
+  },
+  middle: {
+    label: "Middle (HDB 3/4/5)",
+    description: "The Heartland Core. Dual Income.",
+    netWorth: "S$300k - S$1M",
+    education: { secondary: 25, diploma: 40, degree: 30, postgrad: 5, other: 0 },
+    timeUse: [
+      { name: 'Productive', value: 8.8, color: '#3b82f6', icon: Briefcase },
+      { name: 'Maintenance', value: 11.2, color: '#10b981', icon: Moon },
+      { name: 'Restorative (Hawker/TV)', value: 2.0, color: '#f59e0b', icon: Coffee },
+      { name: 'Household', value: 2.0, color: '#8b5cf6', icon: Home },
+    ]
+  },
+  elderly: {
+    label: "Pioneer/Merdeka (65+)",
+    description: "Asset rich (HDB), CPF Life dependents.",
+    netWorth: "S$450,000 (Asset Heavy)",
+    education: { secondary: 50, diploma: 10, degree: 10, postgrad: 5, other: 25 },
+    timeUse: [
+      { name: 'Productive (Active Ageing)', value: 1.0, color: '#3b82f6', icon: Briefcase },
+      { name: 'Maintenance', value: 12.0, color: '#10b981', icon: Moon },
+      { name: 'Restorative (Kopi)', value: 8.0, color: '#f59e0b', icon: Coffee },
+      { name: 'Household', value: 3.0, color: '#8b5cf6', icon: Home },
+    ]
+  },
+  student: {
+    label: "Student (Gen Z/Alpha)",
+    description: "High academic pressure (Tuition culture).",
+    netWorth: "Dependent",
+    education: { secondary: 40, diploma: 30, degree: 30, postgrad: 0, other: 0 },
+    timeUse: [
+      { name: 'Productive (School+Tuition)', value: 10.0, color: '#3b82f6', icon: Briefcase },
+      { name: 'Maintenance', value: 10.0, color: '#10b981', icon: Moon },
+      { name: 'Restorative (Phone/Game)', value: 3.0, color: '#f59e0b', icon: Coffee },
+      { name: 'Household', value: 1.0, color: '#8b5cf6', icon: Home },
+    ]
+  }
+};
+
+// 3. Sector & Cognitive Allocation Data (Singapore Economy)
+const ESTIMATED_TOTAL_POPULATION = 6.04; // Million people (2024 Est)
+
+const rawSectorData = [
+  // --- MARKET SECTORS ---
+  { 
+    name: 'Finance & Fintech', 
+    icon: Building2,
+    share: 9, 
+    gdpShare: 14, // Massive GDP contributor relative to pop
+    bottom: 10, middle: 50, top: 40, // High wealth concentration
+    ageLabel: '28-50',
+    avgAge: 35,
+    type: 'market',
+    desc: 'Banking, Wealth Mgmt, Crypto/Web3.' 
+  },
+  { 
+    name: 'Manufacturing & Precision', 
+    icon: Factory,
+    share: 12, 
+    gdpShare: 20,
+    bottom: 50, middle: 40, top: 10, 
+    ageLabel: 'Mixed',
+    avgAge: 42, 
+    type: 'market',
+    desc: 'Semicon, Biomed, Aero, Chemicals.' 
+  },
+  { 
+    name: 'Maritime & Logistics', 
+    icon: Anchor,
+    share: 6, 
+    gdpShare: 10, // PSA/Changi Hub
+    bottom: 40, middle: 50, top: 10, 
+    ageLabel: '35-55',
+    avgAge: 45, 
+    type: 'market',
+    desc: 'Port Ops, Aviation, Supply Chain.' 
+  },
+  { 
+    name: 'Service & Retail', 
+    icon: ShoppingBag,
+    share: 15, 
+    gdpShare: 10,
+    bottom: 70, middle: 25, top: 5, 
+    ageLabel: 'Young/Old',
+    avgAge: 38,
+    type: 'market',
+    desc: 'F&B, Hospitality, Retail.' 
+  },
+  { 
+    name: 'Tech & Startups', 
+    icon: Cpu,
+    share: 7, 
+    gdpShare: 8,
+    bottom: 20, middle: 50, top: 30, 
+    ageLabel: 'Young (24-40)',
+    avgAge: 32,
+    type: 'market',
+    desc: 'Software, Platform, AI.' 
+  },
+  { 
+    name: 'Construction & Marine', 
+    icon: UserX, // Using UserX to symbolize transient workforce often
+    share: 9, 
+    gdpShare: 4,
+    bottom: 90, middle: 8, top: 2, // Heavily foreign worker based (low local wealth)
+    ageLabel: '20-45',
+    avgAge: 33,
+    type: 'market',
+    desc: 'Infrastructure, BTOs, Shipyards.' 
+  },
+
+  // --- NON-MARKET SECTORS ---
+  {
+    name: 'Students',
+    icon: GraduationCap,
+    share: 16, 
+    gdpShare: 0,
+    bottom: 80, middle: 19, top: 1,
+    ageLabel: '4-23',
+    avgAge: 14,
+    type: 'non-market',
+    desc: 'Pri/Sec/Poly/Uni. Future Human Capital.'
+  },
+  {
+    name: 'National Service (NSF)',
+    icon: ShieldAlert,
+    share: 1.5, // ~2 years of male pop
+    gdpShare: 0,
+    bottom: 90, middle: 10, top: 0,
+    ageLabel: '18-22',
+    avgAge: 20,
+    type: 'non-market',
+    desc: 'Mandatory Conscription. Defense.'
+  },
+  {
+    name: 'Retirees (Silver)',
+    icon: Armchair,
+    share: 18, 
+    gdpShare: 0,
+    bottom: 40, middle: 50, top: 10,
+    ageLabel: '65+',
+    avgAge: 74,
+    type: 'non-market',
+    desc: 'CPF Life recipients, Aged.'
+  },
+  {
+    name: 'Homemakers / Others',
+    icon: Baby,
+    share: 6.5, 
+    gdpShare: 0,
+    bottom: 60, middle: 35, top: 5,
+    ageLabel: 'Mixed',
+    avgAge: 45,
+    type: 'non-market',
+    desc: 'Caregivers, Unemployed.'
+  }
+];
+
+// --- HELPER LOGIC ---
+
+// Heuristic to estimate wealth distribution by age bracket in SG
+const getWealthDistribution = (ageGroup: string) => {
+  const ageStart = parseInt(ageGroup.split('-')[0].replace('+', ''));
+  
+  if (ageStart < 25) {
+    // NSF/Student: Low wealth
+    return { bottom: 90, middle: 9, top: 1 };
+  } else if (ageStart < 35) {
+    // BTO saving phase / Career start
+    return { bottom: 60, middle: 35, top: 5 };
+  } else if (ageStart < 55) {
+    // Peak Earnings + Property Appreciation
+    return { bottom: 30, middle: 55, top: 15 };
+  } else {
+    // CPF Release / Downgrading for cash
+    return { bottom: 40, middle: 50, top: 10 };
+  }
+};
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const wealth = getWealthDistribution(label);
+    const totalPop = (payload[0].value + payload[1].value).toFixed(1);
+
+    return (
+      <div className="bg-slate-800 text-white p-4 rounded-xl shadow-2xl border border-slate-600 min-w-[220px]">
+        <div className="border-b border-slate-600 pb-2 mb-3">
+            <div className="flex justify-between items-baseline">
+              <p className="font-bold text-lg text-white">Age {label}</p>
+              <span className="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">
+                {totalPop}% of SG
+              </span>
+            </div>
+        </div>
+        
+        <p className="text-[11px] uppercase tracking-wider font-bold mb-2 text-slate-400">
+          Est. Wealth Tier (Housing)
+        </p>
+        
+        {/* Wealth Distribution Bars */}
+        <div className="space-y-3">
+            {/* Top Tier */}
+            <div>
+                <div className="flex justify-between text-xs mb-1">
+                    <span className="text-emerald-400 font-medium">Condo/Landed</span>
+                    <span className="font-mono text-emerald-100">{wealth.top}%</span>
+                </div>
+                <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]" 
+                      style={{ width: `${wealth.top}%` }} 
+                    />
+                </div>
+            </div>
+            
+            {/* Middle Tier */}
+            <div>
+                <div className="flex justify-between text-xs mb-1">
+                    <span className="text-blue-400 font-medium">HDB 4/5 Room</span>
+                    <span className="font-mono text-blue-100">{wealth.middle}%</span>
+                </div>
+                <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]" 
+                      style={{ width: `${wealth.middle}%` }} 
+                    />
+                </div>
+            </div>
+
+            {/* Bottom Tier */}
+            <div>
+                <div className="flex justify-between text-xs mb-1">
+                    <span className="text-amber-400 font-medium">HDB 1/2/3 Room</span>
+                    <span className="font-mono text-amber-100">{wealth.bottom}%</span>
+                </div>
+                <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]" 
+                      style={{ width: `${wealth.bottom}%` }} 
+                    />
+                </div>
+            </div>
+        </div>
+        
+        <p className="text-[10px] text-slate-500 mt-4 italic leading-tight">
+          *Proxy based on Housing Type & CPF Balances.
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Sort Button Component
+const SortButton = ({ label, active, direction, onClick, className = "" }: any) => (
+  <button 
+    onClick={onClick}
+    className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider transition-all px-2 py-1 rounded hover:bg-slate-700 ${active ? 'text-indigo-400 bg-slate-700/50' : 'text-slate-500'} ${className}`}
+  >
+    {label}
+    {active ? (
+      direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />
+    ) : (
+      <ArrowUpDown size={12} className="opacity-30" />
+    )}
+  </button>
+);
+
+export default function SGDashboard() {
+  const [selectedProfile, setSelectedProfile] = useState<keyof typeof profiles>('average');
+  const [sortConfig, setSortConfig] = useState<{ key: 'share' | 'gdpShare' | 'avgAge', direction: 'asc' | 'desc' }>({ key: 'share', direction: 'desc' });
+  
+  const activeData = profiles[selectedProfile];
+
+  // Sorting Logic
+  const sortedSectorData = useMemo(() => {
+    return [...rawSectorData].sort((a, b) => {
+      if (sortConfig.direction === 'asc') {
+        return a[sortConfig.key] - b[sortConfig.key];
+      }
+      return b[sortConfig.key] - a[sortConfig.key];
+    });
+  }, [sortConfig]);
+
+  const handleSort = (key: 'share' | 'gdpShare' | 'avgAge') => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
+    }));
+  };
+
+  // Education Data for Bar Chart
+  const educationData = [
+    { name: 'Sec/ITE', value: activeData.education.secondary },
+    { name: 'Poly/Dip', value: activeData.education.diploma },
+    { name: 'Uni Degree', value: activeData.education.degree },
+    { name: 'Postgrad', value: activeData.education.postgrad },
+  ];
+
+  return (
+    <div className="min-h-screen bg-slate-900 text-slate-100 p-4 md:p-8 font-sans">
+      <header className="mb-8 border-b border-slate-700 pb-4">
+        <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3">
+          <Brain className="text-red-500" />
+          SG Demographic & Cognitive Dashboard
+        </h1>
+        <p className="text-slate-400 mt-2 text-lg">
+          Analysis of Singapore's population structure, cognitive output, and wealth distribution.
+        </p>
+      </header>
+
+      {/* Control Panel */}
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+        {Object.entries(profiles).map(([key, profile]) => (
+          <button
+            key={key}
+            onClick={() => setSelectedProfile(key as keyof typeof profiles)}
+            className={`p-3 rounded-lg border transition-all duration-200 text-left ${
+              selectedProfile === key
+                ? 'bg-red-900/40 border-red-500 shadow-red-500/20 shadow-lg'
+                : 'bg-slate-800 border-slate-700 hover:border-red-500/50 hover:bg-slate-750'
+            }`}
+          >
+            <div className="font-bold text-sm">{profile.label}</div>
+            <div className="text-xs text-slate-400 mt-1 truncate">{profile.netWorth}</div>
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+        
+        {/* LEFT COLUMN: Demographics */}
+        <div className="lg:col-span-5 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Users className="text-red-400" />
+              Population Pyramid (SG)
+            </h2>
+            <span className="text-xs bg-slate-700 px-2 py-1 rounded">2024 Est.</span>
+          </div>
+          <div className="h-[500px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                layout="vertical"
+                data={demographicData}
+                stackOffset="sign"
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#334155" />
+                <XAxis type="number" hide />
+                <YAxis 
+                  dataKey="age" 
+                  type="category" 
+                  width={40} 
+                  tick={{ fill: '#94a3b8', fontSize: 12 }} 
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(255,255,255,0.05)'}} />
+                <Legend 
+                  wrapperStyle={{ paddingTop: '20px' }} 
+                  iconType="circle"
+                />
+                <Bar name="Male" dataKey="male" fill="#60a5fa" stackId="a" radius={[4, 0, 0, 4]} />
+                <Bar name="Female" dataKey="female" fill="#f472b6" stackId="a" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 text-center text-sm text-slate-400">
+            Note the "Urn" shape: Shrinking youth base & large workforce/elderly.
+            <br/>Large bulge in 30-45 reflects foreign talent + Millennials.
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Cognitive & Wealth */}
+        <div className="lg:col-span-7 grid grid-cols-1 gap-8">
+          
+          {/* TOP: Cognitive Cycles */}
+          <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <Clock className="text-amber-400" />
+                Cognitive Cycles: A Day in SG
+              </h2>
+              <span className="text-xs bg-slate-700 px-2 py-1 rounded text-amber-400 font-mono">
+                Target: {activeData.label}
+              </span>
+            </div>
+            <p className="text-slate-400 text-sm mb-6">
+              How this demographic spends their daily cognitive energy.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div className="h-[280px] w-full relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={activeData.timeUse}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {activeData.timeUse.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number) => [`${value} hrs`, 'Time Spent']}
+                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Center Text Overlay */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+                  <span className="text-2xl font-bold text-slate-100">24h</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {activeData.timeUse.map((item) => (
+                  <div key={item.name} className="flex items-center justify-between p-3 bg-slate-750 rounded-lg border border-slate-700/50">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-slate-700">
+                        <item.icon size={16} style={{ color: item.color }} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-slate-200">{item.name}</div>
+                        <div className="text-xs text-slate-400">
+                          {((item.value / 24) * 100).toFixed(1)}% of cycle
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-xl font-mono font-bold" style={{ color: item.color }}>
+                      {item.value}h
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* BOTTOM: Wealth & Education Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Net Worth Card */}
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl border border-slate-700 flex flex-col justify-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <DollarSign size={120} />
+              </div>
+              <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Estimated Net Worth</h3>
+              <div className="text-3xl md:text-4xl font-bold text-white mb-4">
+                {activeData.netWorth}
+              </div>
+              <div className="text-xs text-slate-400 bg-slate-800/50 p-3 rounded backdrop-blur-sm">
+                 Includes <strong>CPF Balances</strong> + <strong>Property Equity</strong>. Wealth is highly tied to housing type (Public vs Private) and tenure (Freehold vs Leasehold).
+              </div>
+            </div>
+
+            {/* Education Chart */}
+            <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
+              <h3 className="text-slate-200 text-sm font-bold flex items-center gap-2 mb-4">
+                <BookOpen size={16} className="text-blue-400" />
+                Education Distribution (%)
+              </h3>
+              <div className="h-[140px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={educationData} layout="vertical" margin={{ left: 20 }}>
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 10, fill: '#94a3b8' }} interval={0} />
+                    <Tooltip 
+                      cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc' }}
+                    />
+                    <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={16} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* NEW SECTION: National Cognitive Output by Sector */}
+      <div className="bg-slate-800 p-6 md:p-8 rounded-xl border border-slate-700 shadow-xl">
+        <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-3">
+              <Brain className="text-red-400" />
+              National Cognitive Output by Sector
+            </h2>
+            <p className="text-slate-400 text-sm mt-1">
+              Distribution of Singapore's cognitive cycles (Market + Non-Market).
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {/* Header with Sort Controls */}
+          <div className="grid grid-cols-12 gap-4 text-xs font-bold uppercase text-slate-500 tracking-wider mb-2 px-2 pb-2 border-b border-slate-700">
+            <div className="col-span-5 md:col-span-4 flex items-center gap-4">
+              <SortButton 
+                label="% Population" 
+                active={sortConfig.key === 'share'} 
+                direction={sortConfig.direction} 
+                onClick={() => handleSort('share')}
+              />
+              <SortButton 
+                label="GDP Share" 
+                active={sortConfig.key === 'gdpShare'} 
+                direction={sortConfig.direction} 
+                onClick={() => handleSort('gdpShare')}
+              />
+            </div>
+            <div className="col-span-5 md:col-span-6 flex items-center">
+              Housing/Wealth Composition
+            </div>
+            <div className="col-span-2 md:col-span-2 text-right flex justify-end">
+              <SortButton 
+                label="Age Skew" 
+                active={sortConfig.key === 'avgAge'} 
+                direction={sortConfig.direction} 
+                onClick={() => handleSort('avgAge')}
+              />
+            </div>
+          </div>
+
+          {sortedSectorData.map((sector, index) => (
+            <div key={index} className={`grid grid-cols-12 gap-4 items-center bg-slate-750 p-3 rounded-lg border transition-colors group ${sector.type === 'non-market' ? 'border-amber-900/30 bg-amber-900/5 hover:bg-amber-900/10' : 'border-slate-700/50 hover:bg-slate-700 hover:border-red-500/30'}`}>
+              
+              {/* Left: Name & Share */}
+              <div className="col-span-5 md:col-span-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded ${sector.type === 'non-market' ? 'bg-amber-900/20 text-amber-400' : 'bg-slate-800 text-red-400'}`}>
+                    <sector.icon size={18} />
+                  </div>
+                  <div>
+                    <div className="font-bold text-slate-200 text-sm md:text-base flex items-center gap-2">
+                      {sector.name}
+                      {sector.type === 'non-market' && <span className="text-[10px] bg-amber-900/40 text-amber-300 px-1.5 py-0.5 rounded uppercase tracking-wide">Non-Market</span>}
+                    </div>
+                    <div className="text-xs text-slate-400 flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
+                      <span title="Approx. number of people">
+                        <Users size={10} className="inline mr-1 text-slate-500" />
+                        <span className="text-slate-300 font-bold">
+                          {((sector.share / 100) * ESTIMATED_TOTAL_POPULATION).toFixed(2)}M
+                        </span>
+                      </span>
+                      {sector.type === 'market' && (
+                        <>
+                          <span className="hidden md:inline text-slate-600">|</span>
+                          <span title="Share of GDP">
+                            <DollarSign size={10} className="inline mr-1 text-emerald-500" />
+                            <span className="text-emerald-400 font-mono">
+                              {sector.gdpShare}% GDP
+                            </span>
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Middle: Stacked Wealth Bar */}
+              <div className="col-span-5 md:col-span-6">
+                <div className="flex justify-between text-[10px] text-slate-400 mb-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <span>HDB 1-3 Rm</span>
+                   <span>Pvt/Landed</span>
+                </div>
+                <div className="h-6 w-full flex rounded overflow-hidden bg-slate-900 ring-1 ring-slate-700/50">
+                  {/* Bottom Segment */}
+                  <div 
+                    style={{ width: `${sector.bottom}%` }} 
+                    className="h-full bg-amber-500/80 hover:bg-amber-500 flex items-center justify-center text-[10px] font-bold text-slate-900 transition-all"
+                    title={`HDB 1-3 Room / Foreign Worker Dorms: ${sector.bottom}%`}
+                  >
+                    {sector.bottom > 15 && `${sector.bottom}%`}
+                  </div>
+                  {/* Middle Segment */}
+                  <div 
+                    style={{ width: `${sector.middle}%` }} 
+                    className="h-full bg-blue-500/80 hover:bg-blue-500 flex items-center justify-center text-[10px] font-bold text-white transition-all"
+                    title={`HDB 4-5 Room / EC: ${sector.middle}%`}
+                  >
+                    {sector.middle > 15 && `${sector.middle}%`}
+                  </div>
+                  {/* Top Segment */}
+                  <div 
+                    style={{ width: `${sector.top}%` }} 
+                    className="h-full bg-emerald-500/80 hover:bg-emerald-500 flex items-center justify-center text-[10px] font-bold text-slate-900 transition-all"
+                    title={`Private Condo / Landed: ${sector.top}%`}
+                  >
+                    {sector.top > 10 && `${sector.top}%`}
+                  </div>
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1 truncate hidden md:block">
+                  {sector.desc}
+                </div>
+              </div>
+
+              {/* Right: Age Skew */}
+              <div className="col-span-2 md:col-span-2 text-right">
+                <span className="inline-block px-2 py-1 rounded bg-slate-800 text-xs font-medium text-slate-300 border border-slate-600">
+                  {sector.ageLabel}
+                </span>
+              </div>
+
+            </div>
+          ))}
+          
+          <div className="flex justify-center gap-6 mt-4 text-xs text-slate-400 pt-4 border-t border-slate-700/50">
+             <div className="flex items-center gap-2">
+               <div className="w-3 h-3 bg-amber-500 rounded-sm"></div> HDB 1-3 Rm / Dorms
+             </div>
+             <div className="flex items-center gap-2">
+               <div className="w-3 h-3 bg-blue-500 rounded-sm"></div> HDB 4-5 Rm / EC
+             </div>
+             <div className="flex items-center gap-2">
+               <div className="w-3 h-3 bg-emerald-500 rounded-sm"></div> Private / Landed
+             </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  );
+}
