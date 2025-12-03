@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>world cognitive cycles dashboard</title>
+  <link rel="stylesheet" href="../theme.css">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <button id="theme-toggle">toggle theme</button>
+  <div class="dashboard-shell">
+    <a class="back-link" href="../worldcognitivecycles.html">← back to world dashboards</a>
+    <div class="dashboard-header">
+      <h1 id="page-title">world cognitive cycles</h1>
+      <p id="page-description">loading...</p>
+    </div>
+
+    <div id="profile-selector" class="profile-selector"></div>
+
+    <div class="grid-2">
+      <section class="card">
+        <h2>Daily cognitive cycles</h2>
+        <p id="profile-description" style="margin-top:-0.4rem; color:#555;"></p>
+        <p><strong id="profile-title"></strong> · <span id="profile-networth"></span></p>
+        <div class="grid-2">
+          <div>
+            <h3>Time use (24h)</h3>
+            <ul id="timeuse-list" class="time-list"></ul>
+          </div>
+          <div>
+            <h3>Education split</h3>
+            <ul id="education-list" class="education-list"></ul>
+          </div>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Demographic pyramid</h2>
+        <div id="demographic-rows"></div>
+        <div class="legend">
+          <span><i class="male"></i>male</span>
+          <span><i class="female"></i>female</span>
+        </div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:1rem;">
+      <h2>Sector cognitive allocation</h2>
+      <p style="color:#555; margin-top:-0.5rem;">Share of people, estimated GDP weight, and wealth mix.</p>
+      <div id="sector-cards" class="sector-list"></div>
+      <div class="legend">
+        <span><i class="bottom"></i>Bottom 50%</span>
+        <span><i class="middle"></i>Middle 40%</span>
+        <span><i class="top"></i>Top 10%</span>
+      </div>
+    </section>
+  </div>
+
+  <script src="../theme.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

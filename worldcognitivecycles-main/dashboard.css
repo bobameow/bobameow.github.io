@@ -1,0 +1,197 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.dashboard-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  text-align: left;
+  color: inherit;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  color: var(--link-color);
+}
+
+.dashboard-header h1 {
+  margin: 0 0 0.5rem 0;
+}
+
+.dashboard-header p {
+  margin: 0 0 1.25rem 0;
+  color: var(--text-muted, #555);
+}
+
+.profile-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.profile-button {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  background: var(--card-bg, #f8f8f8);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-button.active {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+}
+
+.profile-button small {
+  display: block;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 1rem;
+  background: var(--card-bg, #fdfdfd);
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+.table-like {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-like th,
+.table-like td {
+  padding: 0.4rem 0.3rem;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 0.95rem;
+}
+
+.table-like th {
+  text-align: left;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bar-track {
+  flex: 1;
+  height: 8px;
+  background: #e5e5e5;
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+}
+
+.bar-segment {
+  height: 100%;
+}
+
+.male {
+  background: #60a5fa;
+}
+
+.female {
+  background: #f472b6;
+}
+
+.bottom {
+  background: #f59e0b;
+}
+
+.middle {
+  background: #3b82f6;
+}
+
+.top {
+  background: #10b981;
+}
+
+.time-list,
+.education-list,
+.sector-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.time-list li,
+.education-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+}
+
+.sector-card {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--card-bg, #fff);
+}
+
+.sector-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  color: #555;
+  font-size: 0.92rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  font-size: 0.8rem;
+}
+
+.legend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legend i {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+@media (max-width: 640px) {
+  .dashboard-shell {
+    padding: 1.25rem 1rem 2rem;
+  }
+}
